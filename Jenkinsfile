@@ -1,19 +1,18 @@
 pipeline {
     agent any
-    
+
     tools {
         jdk 'JDK21'
         maven 'MAVEN3'
     }
-    
+
     environment {
-        // Define environment variables for Tomcat
-        WAR_FILE = 'target/roshambo.war' // Path to the generated WAR file (use forward slashes)
+        WAR_FILE = 'target/roshambo.war' // Path to the generated WAR file
         TOMCAT_URL = 'http://localhost:9090' // Tomcat server URL
         TOMCAT_USER = 'impu1s3e' // Tomcat Manager username
         TOMCAT_PASSWORD = 'Wahid@p12' // Tomcat Manager password
     }
-    
+
     stages {
         stage('Clean Project') {
             steps {
@@ -30,18 +29,16 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-		    //in this case it will be C:\ProgramData\Jenkins\.jenkins\workspace\war-deploy-jenkins-tomcat
-                    def warFilePath = "${WORKSPACE}/${WAR_FILE}" // Use forward slashes in path
+                    def warFilePath = "${WORKSPACE}\\${WAR_FILE}".replace('/', '\\')
                     echo "WAR file path: ${warFilePath}"
-                    
-                    // Check if the WAR file exists before deploying
+
                     if (fileExists(warFilePath)) {
                         echo 'WAR file found, proceeding with deployment...'
-                        
-                        // Deploy the WAR file to Tomcat using curl and Tomcat Manager API
+
+                        // Use caret (^) for line continuation in Windows batch
                         bat """
-                            curl --upload-file "${warFilePath}" \
-                            --user ${TOMCAT_USER}:${TOMCAT_PASSWORD} \
+                            curl --upload-file "${warFilePath}" ^
+                            --user ${TOMCAT_USER}:${TOMCAT_PASSWORD} ^
                             "${TOMCAT_URL}/manager/text/deploy?path=/roshambo&update=true"
                         """
                     } else {
